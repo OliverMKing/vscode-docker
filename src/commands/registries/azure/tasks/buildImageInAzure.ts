@@ -20,6 +20,8 @@ export async function buildImageInAzure(context: IActionContext, uri?: vscode.Ur
     const client = await node.getClient(context);
 
     const getInfo = async () => await client.runs.get(node.resourceGroup, node.registryName, runId);
+
+    // wait for the run to be finished then return
     let info = await getInfo();
     while (info.status === RUNNING) {
         info = await getInfo();
