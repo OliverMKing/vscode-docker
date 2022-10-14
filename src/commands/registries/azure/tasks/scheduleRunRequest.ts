@@ -24,7 +24,9 @@ import { getStorageBlob } from '../../../../utils/lazyPackages';
 const idPrecision = 6;
 const vcsIgnoreList = ['.git', '.gitignore', '.bzr', 'bzrignore', '.hg', '.hgignore', '.svn'];
 
-export async function scheduleRunRequest(context: IActionContext, requestType: 'DockerBuildRequest' | 'FileTaskRunRequest', uri: vscode.Uri | undefined): Promise<void> {
+type Run = AcrRun & { node: AzureRegistryTreeItem };
+
+export async function scheduleRunRequest(context: IActionContext, requestType: 'DockerBuildRequest' | 'FileTaskRunRequest', uri: vscode.Uri | undefined): Promise<Run> {
     // Acquire information.
     let rootFolder: vscode.WorkspaceFolder;
     let fileItem: Item;
@@ -47,6 +49,7 @@ export async function scheduleRunRequest(context: IActionContext, requestType: '
 
     const tarFilePath: string = getTempSourceArchivePath();
 
+    let run: Run;
     try {
         // Prepare to run.
         ext.outputChannel.show();
@@ -76,7 +79,10 @@ export async function scheduleRunRequest(context: IActionContext, requestType: '
         // Schedule the run and Clean up.
         ext.outputChannel.appendLine(localize('vscode-docker.commands.registries.azure.tasks.setUp', 'Set up run request'));
 
-        const run = await (await node.getClient(context)).registries.beginScheduleRunAndWait(node.resourceGroup, node.registryName, runRequest);
+        const resourceGroup = node.resourceGroup;
+        const registryName = node.registryName;
+        run = {...await (await node.getClient(context)).registries.beginScheduleRunAndWait(resourceGroup, registryName, runRequest), node};
+
         ext.outputChannel.appendLine(localize('vscode-docker.commands.registries.azure.tasks.scheduledRun', 'Scheduled run {0}', run.runId));
 
         void streamLogs(context, node, run);
@@ -85,6 +91,8 @@ export async function scheduleRunRequest(context: IActionContext, requestType: '
             await fse.unlink(tarFilePath);
         }
     }
+
+    return run;
 }
 
 async function quickPickImageName(context: IActionContext, rootFolder: vscode.WorkspaceFolder, dockerFileItem: Item | undefined): Promise<string> {
