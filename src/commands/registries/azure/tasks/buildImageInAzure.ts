@@ -6,10 +6,9 @@
 import * as vscode from 'vscode';
 import { IActionContext, UserCancelledError } from '@microsoft/vscode-azext-utils';
 import { scheduleRunRequest } from './scheduleRunRequest';
-import { Run } from '@azure/arm-containerregistry';
+import { KnownRunStatus, Run } from '@azure/arm-containerregistry';
 
 const WAIT_MS = 500;
-const RUNNING = 'Running';
 
 export async function buildImageInAzure(context: IActionContext, uri?: vscode.Uri | undefined): Promise<Run> {
     if (!vscode.workspace.isTrusted) {
@@ -23,7 +22,7 @@ export async function buildImageInAzure(context: IActionContext, uri?: vscode.Ur
 
     // wait for the run to be finished then return
     let info = await getInfo();
-    while (info.status === RUNNING) {
+    while (info.status === KnownRunStatus.Running) {
         info = await getInfo();
         await sleep(WAIT_MS);
     }
