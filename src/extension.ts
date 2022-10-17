@@ -127,7 +127,7 @@ export async function activateInternal(ctx: vscode.ExtensionContext, perfStats: 
                 workspaceState: ctx.workspaceState,
             },
         };
-    }  else {
+    } else {
         return undefined;
     }
 }
