@@ -12,7 +12,6 @@ import * as vscode from 'vscode';
 import { ConfigurationParams, DidChangeConfigurationNotification, DocumentSelector, LanguageClient, LanguageClientOptions, Middleware, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import * as tas from 'vscode-tas-client';
 import { registerCommands } from './commands/registerCommands';
-import { buildImageInAzure } from './commands/registries/azure/tasks/buildImageInAzure';
 import { registerDebugProvider } from './debugging/DebugHelper';
 import { DockerContextManager } from './docker/ContextManager';
 import { ContainerFilesProvider } from './docker/files/ContainerFilesProvider';
@@ -128,10 +127,9 @@ export async function activateInternal(ctx: vscode.ExtensionContext, perfStats: 
                 workspaceState: ctx.workspaceState,
             },
         };
-    } 
-
-    // return the API
-    return { buildImageInAzure };
+    }  else {
+        return undefined;
+    }
 }
 
 export async function deactivateInternal(ctx: vscode.ExtensionContext): Promise<void> {
